@@ -1,0 +1,206 @@
+ShareSDK的集成
+ShareSDK，集成了市面上大部分社交平台，我们只需要把它集成，就可以轻松的把我们的自身应用里面携带的图片，文本请求的分析到各个社交平台。
+1.在平台上注册开发者账号 http://www.mob.com/#/
+2.申请一款应用，分配appkey 11108cd387bb2
+3.ShareSdk下载下来 下载地址 http://www.mob.com/#/download
+4.生成资源文件
+5.集成-参照文档集成 http://dashboard.mob.com/#/main/quickstarts/share/android
+三级缓存之-网络缓存
+1.图片加载后，因为是在子线程中加载的，要发消息到主线程中显示
+2.发到主线程后，和哪个位置的图片，绑定显示呢？
+极光推送的集成
+1.注册开发者账号 https://www.jpush.cn
+2.添加新应用，添加新的包名，它会自动生成一个demo,这个demo里面，包名和key都是你真要集成到项目的信息；并且生成应用appkey
+3.下载sdk，一般情况下直接下载demo(Eclipse下的demo)，运行起来，演示是否可以推送。
+4.开始集成-把资源拷贝到要集成的项目中
+5.把lib目录下的jar和.so文件都拷贝到Android studio对应项目的lib
+6.在Application 里面初始化极光推送，代码如下
+public class MyApplication extends Application {
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        x.Ext.init(this);
+        x.Ext.setDebug(true);
+        VolleyManager.init(this);
+        JPushInterface.setDebugMode(true);  // 设置开启日志,发布时请关闭日志
+        JPushInterface.init(this);          // 初始化 JPush
+    }
+}
+注意，需要在功能清单文件配置MyApplication
+7.拷贝功能清单文件的权限和需要的Service和Activity配置信息
+      权限信息
+
+      <permission
+        android:name="com.atguigu.bejingnews3.permission.JPUSH_MESSAGE"
+        android:protectionLevel="signature" />
+
+    <!-- Required  一些系统要求的权限，如访问网络等-->
+    <uses-permission android:name="com.atguigu.bejingnews3.permission.JPUSH_MESSAGE" />
+    <uses-permission android:name="android.permission.RECEIVE_USER_PRESENT" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+
+
+    <!-- Optional for location -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_LOCATION_EXTRA_COMMANDS" />
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+  组件配置信息
+
+
+      <!-- Rich push 核心功能 since 2.0.6-->
+            <activity
+                android:name="cn.jpush.android.ui.PopWinActivity"
+                android:theme="@style/MyDialogStyle"
+                android:exported="false">
+            </activity>
+
+            <!-- Required SDK核心功能-->
+            <activity
+                android:name="cn.jpush.android.ui.PushActivity"
+                android:configChanges="orientation|keyboardHidden"
+                android:theme="@android:style/Theme.NoTitleBar"
+                android:exported="false">
+                <intent-filter>
+                    <action android:name="cn.jpush.android.ui.PushActivity" />
+                    <category android:name="android.intent.category.DEFAULT" />
+                    <category android:name="com.atguigu.bejingnews3" />
+                </intent-filter>
+            </activity>
+            <!-- Required  SDK核心功能-->
+            <service
+                android:name="cn.jpush.android.service.DownloadService"
+                android:enabled="true"
+                android:exported="false" >
+            </service>
+
+
+            <!-- Required SDK 核心功能-->
+            <!-- 可配置android:process参数将PushService放在其他进程中 -->
+            <service
+                android:name="cn.jpush.android.service.PushService"
+                android:enabled="true"
+                android:exported="false">
+                <intent-filter>
+                    <action android:name="cn.jpush.android.intent.REGISTER" />
+                    <action android:name="cn.jpush.android.intent.REPORT" />
+                    <action android:name="cn.jpush.android.intent.PushService" />
+                    <action android:name="cn.jpush.android.intent.PUSH_TIME" />
+                </intent-filter>
+            </service>
+
+
+            <!-- Required  SDK核心功能-->
+            <service
+                android:name="cn.jpush.android.service.DownloadService"
+                android:enabled="true"
+                android:exported="false" >
+            </service>
+
+
+            <!-- Required SDK 核心功能-->
+            <!-- 可配置android:process参数将PushService放在其他进程中 -->
+            <service
+                android:name="cn.jpush.android.service.PushService"
+                android:enabled="true"
+                android:exported="false">
+                <intent-filter>
+                    <action android:name="cn.jpush.android.intent.REGISTER" />
+                    <action android:name="cn.jpush.android.intent.REPORT" />
+                    <action android:name="cn.jpush.android.intent.PushService" />
+                    <action android:name="cn.jpush.android.intent.PUSH_TIME" />
+                </intent-filter>
+            </service>
+
+
+            <!-- Required SDK核心功能-->
+            <receiver
+                android:name="cn.jpush.android.service.PushReceiver"
+                android:enabled="true"
+                android:exported="false">
+                <intent-filter android:priority="1000">
+                    <action android:name="cn.jpush.android.intent.NOTIFICATION_RECEIVED_PROXY" />   <!--Required  显示通知栏 -->
+                    <category android:name="com.atguigu.bejingnews3" />
+                </intent-filter>
+                <intent-filter>
+                    <action android:name="android.intent.action.USER_PRESENT" />
+                    <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+                </intent-filter>
+                <!-- Optional -->
+                <intent-filter>
+                    <action android:name="android.intent.action.PACKAGE_ADDED" />
+                    <action android:name="android.intent.action.PACKAGE_REMOVED" />
+                    <data android:scheme="package" />
+                </intent-filter>
+
+            </receiver>
+
+            <!-- Required SDK核心功能-->
+            <receiver android:name="cn.jpush.android.service.AlarmReceiver" android:exported="false"/>
+
+            <!-- User defined.  For test only  用户自定义的广播接收器-->
+            <receiver
+                android:name=".MyReceiver"
+                android:exported="false"
+                android:enabled="true">
+                <intent-filter>
+                    <action android:name="cn.jpush.android.intent.REGISTRATION" /> <!--Required  用户注册SDK的intent-->
+                    <action android:name="cn.jpush.android.intent.UNREGISTRATION" />
+                    <action android:name="cn.jpush.android.intent.MESSAGE_RECEIVED" /> <!--Required  用户接收SDK消息的intent-->
+                    <action android:name="cn.jpush.android.intent.NOTIFICATION_RECEIVED" /> <!--Required  用户接收SDK通知栏信息的intent-->
+                    <action android:name="cn.jpush.android.intent.NOTIFICATION_OPENED" /> <!--Required  用户打开自定义通知栏的intent-->
+                    <action android:name="cn.jpush.android.intent.ACTION_RICHPUSH_CALLBACK" /> <!--Optional 用户接受Rich Push Javascript 回调函数的intent-->
+                    <action android:name="cn.jpush.android.intent.CONNECTION" /><!-- 接收网络变化 连接/断开 since 1.6.3 -->
+                    <category android:name="com.atguigu.bejingnews3" />
+                </intent-filter>
+            </receiver>
+
+
+            <!-- Required  . Enable it you can get statistics data with channel -->
+            <meta-data android:name="JPUSH_CHANNEL" android:value="developer-default"/>
+            <meta-data android:name="JPUSH_APPKEY" android:value="16342c0ec8ff06235181bc38" /> <!--  </>值来自开发者平台取得的AppKey-->
+8.自定义一个广播接受者，onReceiver方法里面代码如下
+ if (JPushInterface.ACTION_NOTIFICATION_OPENED.equals(intent.getAction())) {
+            Log.d(TAG, "[MyReceiver] 用户点击打开了通知");
+
+            Log.d(TAG, "[MyReceiver] 用户点击打开了通知: " + bundle.getString(JPushInterface.EXTRA_EXTRA));
+            try {
+                String json = bundle.getString(JPushInterface.EXTRA_EXTRA);
+
+
+                JSONObject jsonObject = new JSONObject(json);
+                String newsurl = jsonObject.optString("newsurl");
+                if(TextUtils.isEmpty(newsurl)){
+                    newsurl = "http://10.0.2.2:8080/zhbj/10012/724D6A55496A11726628.html";
+                }
+
+                //打开自定义的Activity
+                Intent i = new Intent(context, NewsDetailActivity.class);
+                i.putExtra("url",newsurl);
+//                i.putExtras(bundle);
+
+                //i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                context.startActivity(i);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+
+        } 
+9.一定不要忘记加上
+sourceSets {
+     main.jni.srcDirs = []
+     main.jniLibs.srcDirs = ['libs']
+}
